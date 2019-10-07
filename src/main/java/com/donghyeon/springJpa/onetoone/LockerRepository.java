@@ -1,6 +1,5 @@
-package com.donghyeon.springJpa.config.onetoone;
+package com.donghyeon.springJpa.onetoone;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

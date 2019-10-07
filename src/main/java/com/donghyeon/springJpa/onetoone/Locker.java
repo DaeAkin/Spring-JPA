@@ -1,4 +1,4 @@
-package com.donghyeon.springJpa.config.onetoone;
+package com.donghyeon.springJpa.onetoone;
 
 import lombok.*;
 

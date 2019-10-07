@@ -1,10 +1,6 @@
 package com.donghyeon.springJpa.onetoone;
 
 import com.donghyeon.springJpa.TestConfiguration;
-import com.donghyeon.springJpa.config.onetoone.Locker;
-import com.donghyeon.springJpa.config.onetoone.LockerRepository;
-import com.donghyeon.springJpa.config.onetoone.Member;
-import com.donghyeon.springJpa.config.onetoone.MemberRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
