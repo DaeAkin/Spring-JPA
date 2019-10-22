@@ -24,8 +24,6 @@ public class OnetoManyErrorTests {
 
     @Test
     public void test() {
-        boardRepository.deleteAll();
-
         System.out.println("save 1 Board and 2 Image Start");
         Board board = new Board("test Board");
         board.boardAndImageList.add(new BoardAndImage(board,new Image("file://aaa.png")));
