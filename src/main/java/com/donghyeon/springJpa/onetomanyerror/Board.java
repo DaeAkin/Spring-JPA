@@ -12,17 +12,15 @@ import java.util.List;
 @NoArgsConstructor
 public class Board {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOARD_ID")
     private Long id;
 
     private String title;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinTable(name="BOARD_IMAGE",
-            joinColumns = @JoinColumn(name = "BOARD_ID"),
-            inverseJoinColumns = @JoinColumn(name = "CHILD_ID"))
-     List<Image> imageList = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true,mappedBy = "board")
+    List<BoardAndImage> boardAndImageList = new ArrayList<>();
 
     public Board(String title) {
         this.title = title;

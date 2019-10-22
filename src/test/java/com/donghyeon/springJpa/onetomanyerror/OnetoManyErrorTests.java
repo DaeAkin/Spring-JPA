@@ -24,16 +24,17 @@ public class OnetoManyErrorTests {
 
     @Test
     public void test() {
-        
+        boardRepository.deleteAll();
+
         System.out.println("save 1 Board and 2 Image Start");
         Board board = new Board("test Board");
-        board.imageList.add(new Image("file://aaa.png"));
-        board.imageList.add(new Image("file://bbb.png"));
+        board.boardAndImageList.add(new BoardAndImage(board,new Image("file://aaa.png")));
+        board.boardAndImageList.add(new BoardAndImage(board,new Image("file://bbb.png")));
         board = boardRepository.save(board);
         System.out.println("save 1 Board and 2 Image End");
 
         System.out.println("Add one Image");
-        board.imageList.add(new Image("file://ccc.png"));
+        board.boardAndImageList.add(new BoardAndImage(board,new Image("file://ccc.png")));
         boardRepository.save(board);
         System.out.println("Add one Image End");
 
