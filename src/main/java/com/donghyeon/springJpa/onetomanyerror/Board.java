@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Board {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BOARD_ID")
     private Long id;
 
