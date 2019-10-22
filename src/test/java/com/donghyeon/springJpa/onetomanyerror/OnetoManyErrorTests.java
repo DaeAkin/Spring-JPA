@@ -24,7 +24,7 @@ public class OnetoManyErrorTests {
 
     @Test
     public void test() {
-        //https://velog.io/@dpudpu/5
+        
         System.out.println("save 1 Board and 2 Image Start");
         Board board = new Board("test Board");
         board.imageList.add(new Image("file://aaa.png"));
