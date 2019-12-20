@@ -1,4 +1,4 @@
-package com.donghyeon.springJpa.onetoone;
+package com.donghyeon.springJpa.onetmany;
 
 import com.donghyeon.springJpa.TestConfiguration;
 import org.junit.Test;
