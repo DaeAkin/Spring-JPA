@@ -19,6 +19,6 @@ public class Team {
 
     private String name;
 
-    @OneToMany(mappedBy = "human_id")
+    @OneToMany(mappedBy = "id")
     List<Human> human;
 }

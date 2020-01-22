@@ -21,8 +21,9 @@ public class CriteriaTest {
 
     @Test
     public void 간단한_서브쿼리() {
+
+
         EntityManager em = emf.createEntityManager(); // Retrieve an application managed entity manager
-// Work with the EM
         CriteriaBuilder cb = em.getCriteriaBuilder();
 
         CriteriaQuery<Human> cq = cb.createQuery(Human.class);
