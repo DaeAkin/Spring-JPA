@@ -28,4 +28,10 @@ dependencies {
 	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	// JDK 8+ 이상에서 JPA를 사용하려면 아래의 패키지가 필요
+	implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
+	implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+	compile group: 'org.javassist', name: 'javassist', version: '3.25.0-GA'
+
 }
