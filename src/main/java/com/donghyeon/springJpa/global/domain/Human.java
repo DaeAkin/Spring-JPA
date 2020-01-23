@@ -27,4 +27,9 @@ public class Human {
     @JoinColumn(name = "team_id")
     Team team;
 
+
+    public Human(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
 }
