@@ -47,34 +47,34 @@ public class bidirectionalTest {
 
         //사람1
         Human human1 = new Human("donghyeon",25);
-        em.persist(human1);
+        em.persist(human1); //INSERT human1
         //사람2
         Human human2 = new Human("gildong",23);
-        em.persist(human2);
+        em.persist(human2); //INSERT human2
 
         Team team1 = new Team("토트넘");
         //주인이 아닌 곳에만 연관관계 설정
         team1.getHumans().add(human1);
         team1.getHumans().add(human2);
-        em.persist(team1);
+        em.persist(team1); //INSERT team , UPDATE-HUMAN1.fk, UPDATE-HUMAN2.fk
 
     }
 
-    @Test
-    public void 순수한객체_양방향_테스트() {
-        //팀1
-        Team team1 = new Team("토트넘");
-        Human human1 = new Human("donghyeon",25);
-        Human human2 = new Human("donghyeon",25);
-
-        //연관관계 설정
-        human1.setTeam(team1);
-
-        human2.setTeam(team1);
-
-        List<Human> humans = team1.getHumans();
-
-        assertThat(humans.size()).isEqualTo(2);
-
-    }
+//    @Test
+//    public void 순수한객체_양방향_테스트() {
+//        //팀1
+//        Team team1 = new Team("토트넘");
+//        Human human1 = new Human("donghyeon",25);
+//        Human human2 = new Human("donghyeon",25);
+//
+//        //연관관계 설정
+//        human1.setTeam(team1);
+//
+//        human2.setTeam(team1);
+//
+//        List<Human> humans = team1.getHumans();
+//
+//        assertThat(humans.size()).isEqualTo(2);
+//
+//    }
 }

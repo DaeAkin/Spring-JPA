@@ -23,14 +23,14 @@ public class Human {
     @Embedded
     private Address address;
 
-    @ManyToOne
-    @JoinColumn(name = "team_id")
-    Team team;
-
-    public void setTeam(Team team) {
-        this.team = team;
-        team.getHumans().add(this);
-    }
+//    @ManyToOne
+//    @JoinColumn(name = "team_id")
+//    Team team;
+//
+//    public void setTeam(Team team) {
+//        this.team = team;
+//        team.getHumans().add(this);
+//    }
 
     public Human(String name, int age) {
         this.name = name;

@@ -254,19 +254,194 @@ public class Human {
 
 이렇게 코드를 리팩토링하면 됩니다.
 
-## @OnetoOne
+## @ManyToOne
 
+ManyToOne은 다대일(N:1) 입니다. 다대일 관계의 반대 방향은 항상 일대다 관계고 일대다 관계의 반대는 항상 다대일 관계입니다. 앞전에 만들었던 엔티티를 보면 Human이(N) 이고 Team(1) 이므로 Human 입장에서는 Team과 다대일 관계 입니다. 
 
+다대일 관계에서는 외래 키는 항상 다쪽에 있으므로, 양방향 관계에서 연관관계의 주인은 항상 다쪽입니다.
 
 ## @OneToMany
 
+일대다 관계는 다대일 관계의 반대 방향입니다. 일대다 관계는 엔티티를 하나 이상 참조할 수 있으므로 자바 컬렉션인 Collection,List,Set,Map 중에 하나를 사용해야 합니다. 
 
+Team 입장에서는 Human 엔티티를 여러 개 가지고 있으므로 Team은 Human과 일대다 관계를 맺고 있습니다.
 
-## @ManyToOne
+### 일대다 단방향 관계
+
+일대다 단방향 관계의 단점은 매핑한 객체가 관리하는 외래 키가 다른 테이블에 있어서 INSERT SQL문 한번에 끝낼 일을 UPDATE SQL문을 추가로 실행해야 한다는 점 입니다.
+
+Human
+
+```java
+public class Human {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    private int age;
+
+    @Embedded
+    private Address address;
+  
+//		단방향 테스트를 위해 주석처리
+//    @ManyToOne
+//    @JoinColumn(name = "team_id")
+//    Team team;
+//
+//    public void setTeam(Team team) {
+//        this.team = team;
+//        team.getHumans().add(this);
+//    }
+
+}
+```
+
+Team
+
+```java 
+public class Team {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @OneToMany
+    @JoinColumn(name = "TEAM_ID") //HUMAN의 TEAM_ID
+    List<Human> humans = new ArrayList<>();
+
+    public Team(String name) {
+        this.name = name;
+    }
+}
+```
+
+테스트
+
+```java
+@Test
+public void 저장이안되는_테스트() {
+
+    //사람1
+    Human human1 = new Human("donghyeon",25);
+    em.persist(human1); //INSERT human1
+    //사람2
+    Human human2 = new Human("gildong",23);
+    em.persist(human2); //INSERT human2
+
+    Team team1 = new Team("토트넘");
+    //주인이 아닌 곳에만 연관관계 설정
+    team1.getHumans().add(human1);
+    team1.getHumans().add(human2);
+    em.persist(team1); //INSERT team , UPDATE-HUMAN1.fk, UPDATE-HUMAN2.fk
+
+}
+```
+
+sql
+
+```
+Hibernate: insert into human (street, zip_code, age, name) values (?, ?, ?, ?)
+Hibernate: insert into human (street, zip_code, age, name) values (?, ?, ?, ?)
+Hibernate: insert into team (name) values (?)
+Hibernate: update human set team_id=? where id=?
+Hibernate: update human set team_id=? where id=?
+```
+
+이런 단점은 성능 문제도 있지만 관리도 부담스럽습니다. 이 문제를 해결하기 위해 좋은 방법은 일대다 단방향 매핑 대신에 **다대일 양방향 매핑을 사용하는 것입니다.**
+
+> 다대일 양방향 매핑 vs 일대다 양방향 매핑
+>
+> 둘다 똑같은 말이지만 연관관계의 주인이 어디있는지 구분하기 위해 사용합니다. 다(N) 쪽이 연관관계 주인이면 다대일 입니다.
+
+## @OnetoOne
+
+일대일 관계는 양쪽이 서로 하나의 관계만 가집니다. 예를 들어 회원은 하나의 사물함만 사용하고 사물함도 하나의 회원에 의해서만 사용됩니다. 
+
+- 일대일 관계는 그 반대도 일대일 관계다.
+- 두개의 테이블 중 외래 키는 아무나 가질 수 있다.
+
+### 주테이블에 외래 키
+
+주 객체가 대상 객체를 참조하는 것처럼 주 테이블에 외래 키를 두고 대상 테이블을 참조합니다. 외래 키를 객체 참조와 비슷하게 사용할 수 있어서 객체지향 개발자들이 선호합니다. 이 방법의 장점은 주 테이블이 외래 키를 가지고 있으므로 주 테이블만 확인해도 대상 테이블과 연관관계가 있는지 알 수 있습니다.
+
+### 대상 테이블에 외래 키
+
+전통적인 데이터베이스 개발자들은 보통 대상 테이블에 외래 키를 두는 것을 선호합니다. 이 방법의 장점은 테이블 관계를 일대일에서 일대다로 변경할 때 테이블 구조를 그대로 유지할 수 있습니다.
+
+Member(주테이블 방법 이용)
+
+```java
+public class Member {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;
+
+    @OneToOne
+    @JoinColumn(name="locker_id")
+    Locker locker;
+
+}
+```
+
+Locker
+
+```java
+public class Locker {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @OneToOne(mappedBy = "locker")
+    Member member;
+
+}
+```
 
 
 
 ## @ManyToMany
 
+관계형 데이터베이스는 정규화된 테이블 2개로 다대다 관계를 표현할 수 없기 때문에 보통 다대다 관계를 일대다, 다대일 관계로 풀어내는 연결 테이블을 사용합니다. 
 
+
+
+![erd사진]()
+
+```java
+public class Person {
+
+    @Id @Column(name = "PERSON_ID")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;
+
+    /**
+     * @JoinTable.name : 연결 테이블을 지정한다. 여기서는 MEMBER_PRODUCT 테이블을 선택
+     * @JoinTable.joinColumns : 현재 방향인 회원과 매핑할 조인 컬럼 정보를 지정한다. MEMBER_ID로 지정.
+     * @JoinTable.inverseJoinCloumns : 반대 방향인 상품과 매핑할 조인 컬럼 정보를 지정한다. PRODUCT_ID로 지정
+     */
+    @ManyToMany
+    @JoinTable(name="MEMBER_PRODUCT",
+           joinColumns = @JoinColumn(name="MEMBER_ID"),
+           inverseJoinColumns = @JoinColumn(name = "PRODUCT_ID"))
+    private List<Product> products;
+
+
+    public Person(String username) {
+        this.username = username;
+    }
+}
+```
 

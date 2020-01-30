@@ -15,28 +15,28 @@ public class ManyToManyTests {
     @Autowired
     PersonRepository personRepository;
 
-    @Autowired
-    OrderedRepository orderedRepository;
-
-    @Autowired
-    ProductRepository productRepository;
-
-    @Test
-    public void manyToManyTests() {
-        Person person = new Person("donghyeon");
-        Product product = new Product("Large Pizza");
-
-        person = personRepository.save(person);
-        product = productRepository.save(product);
-
-        Ordered ordered = new Ordered(person,product,3);
-
-        ordered = orderedRepository.save(ordered);
-
-        System.out.println(personRepository.findById(person.getId()).toString());
-        System.out.println(productRepository.findById(product.getId()).toString());
-        System.out.println(orderedRepository.findById(ordered.getId()).toString());
-
-
-    }
+//    @Autowired
+//    OrderedRepository orderedRepository;
+//
+//    @Autowired
+//    ProductRepository productRepository;
+//
+//    @Test
+//    public void manyToManyTests() {
+//        Person person = new Person("donghyeon");
+//        Product product = new Product("Large Pizza");
+//
+//        person = personRepository.save(person);
+//        product = productRepository.save(product);
+//
+//        Ordered ordered = new Ordered(person,product,3);
+//
+//        ordered = orderedRepository.save(ordered);
+//
+//        System.out.println(personRepository.findById(person.getId()).toString());
+//        System.out.println(productRepository.findById(product.getId()).toString());
+//        System.out.println(orderedRepository.findById(ordered.getId()).toString());
+//
+//
+//    }
 }

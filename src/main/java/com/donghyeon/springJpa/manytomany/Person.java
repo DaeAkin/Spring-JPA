@@ -25,32 +25,32 @@ public class Person {
      * @JoinTable.joinColumns : 현재 방향인 회원과 매핑할 조인 컬럼 정보를 지정한다. MEMBER_ID로 지정.
      * @JoinTable.inverseJoinCloumns : 반대 방향인 상품과 매핑할 조인 컬럼 정보를 지정한다. PRODUCT_ID로 지정
      */
-//    @ManyToMany
-//    @JoinTable(name="MEMBER_PRODUCT",
-//            joinColumns = @JoinColumn(name="MEMBER_ID"),
-//            inverseJoinColumns = @JoinColumn(name = "PRODUCT_ID"))
-//    private List<Product> products;
-    //TODO : LAZY Loding에 대해서 알아볼 것.
-    @OneToMany(mappedBy = "person",fetch = FetchType.EAGER)
-    private List<Ordered> orderedList;
+    @ManyToMany
+    @JoinTable(name="PERSON_PRODUCT",
+            joinColumns = @JoinColumn(name="PERSION_ID"),
+            inverseJoinColumns = @JoinColumn(name = "PRODUCT_ID"))
+    private List<Product> products;
+//    //TODO : LAZY Loding에 대해서 알아볼 것.
+//    @OneToMany(mappedBy = "person",fetch = FetchType.EAGER)
+//    private List<Ordered> orderedList;
 
 
     public Person(String username) {
         this.username = username;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Member{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                '}');
-        for (Ordered ordered: orderedList) {
-            stringBuilder.append("product name = " + ordered.getProduct().getName());
-            stringBuilder.append("product count = " + ordered.getProductCount());
-        }
-
-       return stringBuilder.toString();
-    }
+//    @Override
+//    public String toString() {
+//        StringBuilder stringBuilder = new StringBuilder();
+//        stringBuilder.append("Member{" +
+//                "id=" + id +
+//                ", username='" + username + '\'' +
+//                '}');
+//        for (Ordered ordered: orderedList) {
+//            stringBuilder.append("product name = " + ordered.getProduct().getName());
+//            stringBuilder.append("product count = " + ordered.getProductCount());
+//        }
+//
+//       return stringBuilder.toString();
+//    }
 }
