@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,5 +21,9 @@ public class Team {
     private String name;
 
     @OneToMany(mappedBy = "team")
-    List<Human> human;
+    List<Human> humans = new ArrayList<>();
+
+    public Team(String name) {
+        this.name = name;
+    }
 }

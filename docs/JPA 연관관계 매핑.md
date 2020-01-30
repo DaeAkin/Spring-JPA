@@ -99,7 +99,7 @@ public class Team {
     private String name;
 
     @OneToMany(mappedBy = "team")
-    List<Human> humans;
+		List<Human> humans = new ArrayList<>();
 }
 ```
 
@@ -142,9 +142,117 @@ mappedby 속성의 값으로 연관관계의 주인인 team을 주면 됩니다.
 
 양방향 연관관계를 설정하고 데이터를 넣을 때 하는 실수는 연관관계의 주인에는 값을 입력하지 않고, 주인이 아닌 곳에만 값을 입력하는 것 입니다.
 
+테스트코드
+
+```java
+@Test
+public void 저장이안되는_테스트() {
+
+    //사람1
+    Human human1 = new Human("donghyeon",25);
+    em.persist(human1);
+    //사람2
+    Human human2 = new Human("gildong",23);
+    em.persist(human2);
+
+    Team team1 = new Team("토트넘");
+    //주인이 아닌 곳에만 연관관계 설정
+    team1.getHumans().add(human1);
+    team1.getHumans().add(human2);
+    em.persist(team1);
+}
+```
+
+**데이터베이스 결과**
+
+human 테이블
+
+![](./img/humanresult.png)
+
+team 테이블
+
+![](./img/teamresult.png)
+
+human테이블의 team_id 값이 null이 들어가는데, 연관관계의 주인이 아닌 Team.humans에만 값을 저장했기 때문입니다. 연관관계의 주인만이 외래 키의 값을 변경할 수 있습니다.
+
+#### POJO 객체를 고려한 양방향 연관관계
+
+그럼 연관관계의 주인인 **Human** 에만 연관관계를 연결해주고 그 반대인 **Team** 에게만 연결해주지 않아도 될까요? **사실 객체 관점에서 보면 양쪽 방향 모두 값을 입력해주는 것이 가장 안전합니다.** 양쪽 방향 모두 값을 입력하지 않으면 JPA를 사용하지 않는 순수한 객체 상태에서 심각한 문제가 발생할 수 있습니다. 
+
+순수한객체 테스트
+
+```java
+@Test
+public void 순수한객체_양방향_테스트() {
+    //팀1
+    Team team1 = new Team("토트넘");
+    Human human1 = new Human("donghyeon",25);
+    Human human2 = new Human("donghyeon",25);
+
+    //연관관계 설정
+    human1.setTeam(team1);
+    human2.setTeam(team1);
+
+    List<Human> humans = team1.getHumans();
+
+    //테스트가 실패한다
+    assertThat(humans.size()).isEqualTo(2);
+}
+```
+
+결과
+
+```java
+expected:<[2]> but was:<[0]>
+Expected :2
+Actual   :0
+```
 
 
 
+이런 문제를 해결하기 위해서는 양쪽 다 관계를 설정해야 합니다. human에게 team을 설정했으면, 그 반대인 team도 human을 설정해줘야 합니다. 
+
+```java
+@Test
+public void 순수한객체_양방향_테스트() {
+    //팀1
+    Team team1 = new Team("토트넘");
+    Human human1 = new Human("donghyeon",25);
+    Human human2 = new Human("donghyeon",25);
+
+    //연관관계 설정
+    human1.setTeam(team1);
+    team1.getHumans().add(human1);
+
+    human2.setTeam(team1);
+    team1.getHumans().add(human2);
+
+    List<Human> humans = team1.getHumans();
+
+    assertThat(humans.size()).isEqualTo(2);
+}
+```
+
+#### 더 편한 방법은 없을까?
+
+이렇게 양방향 관계를 맺을 때 양쪽 모두 관계를 맺어주는 일은 귀찮고 빼먹을 수도 있으며, 코드량이 늘어나게 됩니다. 이 관계를 맺어주는 메소드를 연관관계의 주인인 Human에서 관리하는 것이 더 좋습니다.
+
+```java
+public class Human {
+		...
+      
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    Team team;
+
+    public void setTeam(Team team) {
+        this.team = team;
+        team.getHumans().add(this);
+    }
+}
+```
+
+이렇게 코드를 리팩토링하면 됩니다.
 
 ## @OnetoOne
 

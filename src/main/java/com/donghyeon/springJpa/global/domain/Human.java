@@ -27,6 +27,10 @@ public class Human {
     @JoinColumn(name = "team_id")
     Team team;
 
+    public void setTeam(Team team) {
+        this.team = team;
+        team.getHumans().add(this);
+    }
 
     public Human(String name, int age) {
         this.name = name;
