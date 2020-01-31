@@ -3,6 +3,7 @@ package com.donghyeon.springJpa.manytomany;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,7 +25,7 @@ public class Product {
     }
 
     //역방향 추가 (양방향)
-//    @ManyToMany(mappedBy = "products")
-//    private List<Member> members;
+    @OneToMany(mappedBy = "product")
+    private List<Ordered> orderedList = new ArrayList<>();
 
 }
