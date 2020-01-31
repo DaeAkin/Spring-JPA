@@ -1,0 +1,866 @@
+# 객체지향 쿼리
+
+## 객체지향쿼리 소개 
+
+EntityManager.find() 메소드를 사용하면 식별자로 엔티티 하나를 조회할 수 있습니다. 이렇게 조회한 엔티티에 객체 그래프 탐색을 사용하면 연관된 엔티티들을 찾을 수 있습니다.
+- 식별자로 조회 EntityManger.find()
+- 객체 그래프 탐색
+
+ 이 기능만으로 애플리케이션을 개발하기는 어렵죠. 예를 들어 **나이가 30살 이상인 회원을 모두 검색**하고 싶다면 좀 더 현실적이고 복잡한 검색 방법이 필요한데, 그렇다고 **모든 회원 엔티티를 메모리에 올려두고 애플리케이션에서 30살 이상인 회원을 검색**하는것은 <u>현실성</u>이 없습니다. 결국 데이터는 데이터베이스에 있으므로 sql로 필요한 내용을 최대한 걸러서 조회해야 합니다. 
+ 하지만 ORM을 사용하면 데이터베이스 테이블이 아닌 객체를 대상으로 개발하므로 검색도 테이블이 아닌 엔티티 객체를 대상으로 하는 방법이 필요합니다. JPQL은 이런 문제를 해결하기 위해 만들어졌는데 다음과 같은 특징이 있습니다.
+
+ - 테이블이 아닌 **객체를 대상**으로 검색하는 객체지향 쿼리다.
+ - **SQL을 추상화**해서 특정 데이터베이스 sql에 의존하지 않는다.
+
+**SQL이 데이터베이스 테이블을 대상**으로 하는 데이터 중심의 쿼리라면 **JPQL은 엔티티 객체를 대상**으로 하는 <u>객체지향쿼리</u> 입니다. JPQL을 사용하면 JPA는 이 JPQL을 분석한 다음 적절한 SQL을 만들어 데이터베이스를 조회합니다. 그리고 조회한 결과로 엔티티 객체를 생성해서 반환합니다.
+JPQL을 한마디로 정의하면 `객체지향 SQL`입니다. 처음보면 SQL로 오해할 정도로 문법이 비슷합니다. 따라서 SQL에 익숙한 개발자는 몇 가지 차이점만 이해하면 쉽게 적용할 수 있습니다.
+
+## JPA가 지원하는 다양한 검색 방법은?
+JPA는 JPQL뿐만 아니라 다양한 검색 방법을 제공합니다.
+### JPA 공식 지원 기능
+- JPQL(java Persistence Query Language)
+- Criteria 쿼리(Criteria Query): JPQL을 편하게 작성하도록 도와주는 API, 빌더 클래스 모음
+- 네이티브 SQL : JAP에서 JPQL대신 직접 SQL을 사용할 수 있습니다.
+## JPQL
+JPQL은 가장 중요한 객체지향 쿼리 언어입니다. **Criteria나 QueryDSL은 결국 JPQL을 편리하게 사용하도록 도와주는 기술**이므로 JPA를 다루는 개발자라면 JPQL을 필수로 학습해야 합니다.
+
+JPQL은 엔티티 객체를 조회하는 객체지향 쿼리입니다. 문법은 SQL과 비슷하고 ANSI 표준 SQL이 제공하는 기능을 유사하게 지원합니다.
+SQL을 추상화하기 때문에 특정데이터베이스에 의존하지 않습니다. 그래서 데이터베이스 방언만 변경하면 JPQL수정 없이도 자연스럽게 데이터베이스를 변경할 수 있습니다.
+
+JPQL은 SQL보다 간결합니다. 엔티티 직접 조회, 묵시적 조인, 다형성 지원으로 SQL보다 코드가 간결합니다.
+
+
+```java
+@Entity(name=“Member”)
+public class Member {
+	
+	@Column(name=“name”)
+	private String username;
+}
+```
+
+```java
+String jpql = “select m from Member as m where m.username = ‘kim’”;
+List<Member> resultList = em.createQuery(jpql,Member.class).getResultList();
+```
+
+### 실행한 JPQL
+```
+select m from Member as m 
+where m.username = ‘kim’
+```
+
+### 실행된 SQL문
+```
+select
+	member.id as id,
+	member.age as age,
+	member.name as name
+from 
+	Member member
+where
+	member.name=‘kim’
+```
+
+## Criteria 쿼리 소개
+Criteria는 `JPQL을 생성하는` 빌더 클래스입니다. Criteria의 장점은 문자가 아닌 query.select(m).where(...)처럼 코드로 JPQL을 작성할 수 있다는 점입니다
+
+String으로 작성한 JPQL보다 코드로 작성한 Criteria의 장점은 다음과 같습니다. 
+
+- **컴파일 시점에 오류를 발견**할 수 있다.
+- IDE를 사용하면 코드 자동완성을 지원한다.
+- 동적 쿼리를 작성하기 편하다.
+
+하이버네이트를 포함한 몇몇 ORM 프레임워크들은 이미 오래 전부터 자신만의 Criteria를 지원했습니다. JPA는 2.0부터 지원합니다.
+
+### JPQL를 Criteria로 변경해 보기
+#### JPQL
+```
+select m from Member as m where m.username = ‘kim’”;
+```
+
+#### Criteria
+```java
+//Criteria 사용 준비
+CriteriaBuilder cb = em.getCriteriaBuilder();
+CriteriaQuery<Member> query = cb.createQuery(Member.class);
+
+//루트 클래스(조회를 시작할 클래스)
+Root<Member> m = query.from(Member.class); 
+
+// 쿼리 생성
+CriteriaQuery<Member> cq = query.select(m).where(cb.equal(m.get(“username”), “kim”));
+List<Member> resultList = em.createQuery(cq).getResultList();
+```
+위에 예제를 보면 문자가 아닌 코드로 작성한 것을 확인할 수 있습니다. 하지만 아쉬운 점이 있다면 m.get(“username”)을 보면 필드 명을 문자로 작성했다는 점입니다. 만약 이 부분도 문자가 아닌 코드로 작성하고 싶으면 **메타 모델**을 사용하면 됩니다.
+자바가 제공하는 어노테이션 프로세서(Annotation Processor) 기능을 사용하면 어노테이션을 분석해 클래스를 생성할 수 있습니다. JPA는 이 기능을 사용해 Member 엔티티 클래스로 부터 Member_라는 Criteria 전용 클래스를 생성하는데 이것을 메타 모델이라고 합니다. 
+
+>  실무에서 사용했던 방법
+>
+> ```java
+> public class MenuItemSpecification {
+> 
+>     public static Specification<MenuItem> hasSectionId(Long menuSectionId) {
+> 
+>         return (menuItemRoot, query, criteriaBuilder) -> {
+>             query.distinct(true);
+>             Subquery<MenuSection> menuSectionSubquery = query.subquery(MenuSection.class);
+>             Root<MenuSection> menuSectionRoot = menuSectionSubquery.from(MenuSection.class);
+>             Expression<List<MenuItem>> sectionMenuItems = menuSectionRoot.get("menuItems");
+>             menuSectionSubquery.select(menuSectionRoot);
+>             menuSectionSubquery.where(criteriaBuilder.equal(menuSectionRoot.get("id"), menuSectionId), criteriaBuilder.isMember(menuItemRoot, sectionMenuItems));
+> 
+>             return criteriaBuilder.exists(menuSectionSubquery);
+>         };
+>     }
+> }
+> ```
+>
+
+### 메타 모델로 변경해보기
+
+메타 모델을 사용하면 온전히 코드만 사용해서 쿼리 작성이 가능합니다.
+
+```
+m.get(“username”) -> m.get(Member_.usermame) 
+```
+
+Criteria가 가진 장점은 많지만 모든 장점을 상쇄할 정도로 복잡하고 장황합니다. 따라서 사용하기 불편한 건 물론이고 Criteria로 작성한 코드도 한눈에 들어오지 않는 단점이 있습니다.
+
+## 또 다른 JPQ 빌더 QueryDSL 
+
+QueryDSL도 Criteria처럼 JPQL 빌더 역할을 합니다. Criteria에비해 더 단순합니다.
+그치만 **오픈소스 프로젝트**며 JPA,JDO,MongoDB,Java Collection등 거의 같은 문법으로 지원합니다. 
+
+### QueryDSL 코드
+```java
+//준비
+JPAQuery query = new JPAQuery(em);
+QMember member = QMember.member;
+
+//쿼리, 결과조회
+List<Member> members = 
+	query.from(member)
+	.where(member.username.eq(“kim”))
+	.list(member);
+```
+	QueryDSL도 어노테이션 프로세서를 사용해서 쿼리 전용 클래스로 만들어야 합니다.
+
+### 네이티브 SQL
+JPA는 SQL을 직접 사용할 수 있는 기능을 지원하는데 이것을 네이티브 SQL이라고 합니다. 
+**JPQL을 사용해도 가끔은 특정 데이터베이스에 의존하는 기능**을 사용해야 할때 사용합니다. 예를 들어 오라클 데이터베이스만 사용하는 CONNECT BY 기능이나 특정 데이터베이스에서만 동작하는 SQL힌트 같은 것 입니다.
+
+네이티브 SQL의 단점은 특정 데이터베이스에 의존하는 SQL을 작성해야 한다는 것입니다. 데이터베이스를 변경하면 네이티브 SQL도 수젛애햐 합니다.
+```java
+String sql = “SELECT ID, AGE, TEAM_ID, NAME FROM MEMBER WHERE NAME = ‘kim’”;
+List<Member> resultList = em.createNativeQuery(sql,Member.class).getResultList();
+```
+
+## 기본 문법과 쿼리 API
+JPQL도 SQL과 비슷하게 CRUD 문을 사용할 수 있습니다. 참고로 엔티티를 저장할 때는 persist메소드를 사용하면 되므로 INSERT문은 없습니다.
+
+### SELECT 문
+```
+SELECT m FROM Member AS m where m.username = ‘Hello’
+```
+#### 대소문자 구분
+엔티티와 속성은 대소문자를 구문합니다. 예를 들어 Member, username은 대소문자를 구문합니다. 반면에 SELECT,FROM,AS같은 JPQL키워드는 대소문자를 구분하지 않습니다.
+#### 엔티티 이름 
+JPQL에서 사용한 Member는 클래스 명이 아니라 엔티티명 입니다. 엔티티명은 @Entity(name=“XXX”)로 지정할 수 있습니다. 기본 값인 클래스 명을 엔티티 명으로 사용하는 것을 추천합니다.
+#### 별칭은 필수
+Member As m을 보면 Member에 m 이라는 별칭을 주었습니다. JPQL은 별칭이 필수입니다. 
+```
+SELECT username FROM Member m // 잘못된 문법
+//m.username으로 고쳐야함.
+```
+AS는 생략이 가능합니다.
+
+### TypeQuery Query 
+작성한 JPQL을 실행하려면 쿼리 객체를 만들어야 하는데, 반환할 타입이 명확하다면 TypeQuery 객체를 사용하고 그게 아니라면 Query 객체를 사용합니다.
+
+TypeQuery 방식
+```java
+TypeQuery<Member> query = em.createQuery(“SELECT m FROM Member m”, Member.class);
+
+List<Member> resultList = query.getResultList();
+for (Member member : resultList) {
+	System.out.println(“member = “ + member);
+}
+```
+
+Query 방식
+```java 
+Query query = em.createQuery(“SELECT m.username, m.age from Member m);
+List resultList = query.getResultList();
+
+for(Object o : resultList) {
+	Object[] result = (Object[]) o; //결과가 둘 이상이라면 Object[] 반환
+ System.out.println(“username = “ + result[0]);
+ System.out.println(“age = “ + result[1]);
+}
+```
+
+JDBC는 위치 기준 파라미터 바인딩만 지원하지만, JPQL은 이름 기준 파라미터 바인딩도 지원 합니다.
+### 이름 기준 파라미터
+```java
+String usernameParam = “User1”;
+
+TypedQuery<Member> query = em.createQuery(“SELECT m FROM Member m where m.username = :username”, Member.class):
+
+query.setParameter(“username”, usernameParam);
+List<Member> resultList = query.getResultList();
+```
+
+
+
+## JPQL 조인
+이번에는 JPQL이 조인을 어떻게 하는지 알아보겠습니다. JPQL조인은 SQL조인과 기능은 같고 문법만 약간 다릅니다.
+
+### 내부조인
+내부 조인은 INNER JOIN을 사용하는데, INNER는 생략할 수 있습니다.
+JPQL
+```java
+String query = “SELECT m FROM Member m INNER JOIN m.team t WHERE t.name = :teamName”;
+```
+
+생성된 내부 조인 SQL은 다음과 같습니다.
+```SQL
+SELECT 
+	M.ID AS ID,
+	M.AGE AS AGE,
+	M.TEAM_ID AS TEAM_ID,
+	M.NAME AS NAME
+FROM 
+	MEMBER M INNER JOIN TEAM T ON M.TEAM_ID = T.ID
+WHERE
+	T.NAME = ?	
+```
+
+JPQL 조인의 가장 큰 특징은 연관 필드를 사용한다는 것입니다. 여기서 m.team이 연관 필드 인데, 연관 필드는 다른 엔티티와 연관관계를 가지기 위해 사용하는 필드를 말합니다.
+
+FROM Member m 을 이용해서 회원을 선택하고 m 이라는 별칭을 주었고 Member m JOIN m.team t 을 이용해서 회원이 가지고 있는 연관 필드로 팀과 조인했습니다. 조인한 팀에는 t라는 별칭을 주었습니다.
+
+다음과 같이 JPQL조인을 SQL조인처럼 사용하면 문법 오류가 발생합니다. 
+```SQL
+FROM Member m JOIN Team t //오류
+From Member m JOIN m.Team t //정상
+```
+
+### 외부조인
+JPQL의 외부조인은 다음과 같이 사용합니다.
+```SQL
+SELETE m
+FROM Member m LEFT [OUTER] JOIN m.team t
+
+// OUTER는 생략 가능
+```
+
+OUTER는 생략이 가능해서 보통 LEFT JOIN으로 많이 사용합니다. 위에서 실행한 JPQL은 다음과 같은 SQL로 변환됩니다.
+```SQL
+SELECT
+	M.ID AS ID,
+	M.AGE AS AGE,
+	M.TEAM_ID AS TEAM_ID,
+	M.NAME AS NAME
+FROM
+	MEMBER M LEFT OUTER JOIN TEAM T ON M.TEAM_ID=T.ID
+WHERE
+	T.NAME = ?
+```
+
+### 컬렉션 조인
+1:N 관계나 N:N처럼 컬렉션을 사용하는 곳에 조인하는 것을 컬렉션 조인이라고 합니다. 
+
+회원 -> 팀 으로 조인은 N:1 조인이여서 단일 값 연관 필드(m.team)를 사용합니다.
+팀 -> 회원은 반대로 1:N조인 이면서 컬렉션 값 연관 필드(m.members)를 사용합니다.
+```SQL
+SELECT t,m FROM Team t LEFT JOIN t.members m
+```
+
+### 세타조인(WHERE절, 내부조인)
+WHERE 절을 사용해서 세타 조인을 할 수 있습니다. **세타 조인은 내부 조인만 지원 합니다.** 세타조인을 이용하면 전혀 관계 없는 엔티티도 조인을 할 수 있습니다.
+
+회원 이름이 팀 이름과 똑같은 사람 수를 구하는 예
+```SQL
+//JPQL
+select count(m) from Member m, Team t where m.username = t.name
+
+//SQL
+SELECT COUNT(M.ID)
+FROM
+	MEMBER M CROSS JOIN TEAM T
+WHERE
+	M.USERNAME = T.NAME
+```
+
+### JOIN ON(JPA2.1부터 지원)
+ON 절을 사용하면 조인 대상을 필터링 하고 조인할 수 있습니다. 참고로 내부 조인의 ON 절은 WHERE 절을 사용할 때와 결과가 같으므로 보통 ON 절은 외부 조인에서만 사용합니다.
+
+모든 회원을 조회하는데, 연관된 팀도 조회하기.
+```JPQL
+select m,t from Member m
+left join m.team t on t.name =‘A’
+
+//SQL
+SELECT m.*, t.* FROM Member m
+LEFT JOIN Team t ON m.TEAM_ID = t.id and t.name=‘A’
+
+```
+
+### 페치 조인
+페치 조인은 SQL에서는 없고, JPQL이 성능 최적화 하는 제공 입니다. 
+지연로딩이나 즉시로딩처럼 컬렉션을 한 번에 같이 조회할지 결정할 수 있습니다. **페치 조인은 별칭을 사용할 수 없습니다.**(하이버네이트 제외) 
+
+```java
+String jpql = "select m from Member m join fetch m.team";
+
+List<Member> members = em.createQuery(jpql, Member.class)
+  .getResultList();
+
+for(Member member : members) {
+  //페치 조인으로 회원과 팀을 함께 조회해서 지연 로딩 발생 안함 !
+  System.out.println("username = " + member.getUsername() + "," + 
+                    "teamname = " + member.getTeam().name());
+}
+```
+
+출력 결과
+
+```java
+username = 회원1, teamname = 팀A
+username = 회원2, teamname = 팀A
+username = 회원3, teamname = 팀B
+```
+
+회원을 조회할 때 페치 조인으로 사용해서 팀도 함께 조회했으므로 연관된 팀 엔티티는 프록시가 아닌 실제 엔티티 입니다. 
+따라서 지연로딩이 일어나지 않고, 또한 프록시가 아닌 실제 엔티티기 때문에 영속성 컨텍스트에서 분리되어도 연관된 팀을 조회할 수 있습니다. 
+
+### 컬렉션 페치 조인 376p
+
+일대다 관계인 컬렉션 페치 조인 입니다.
+
+#### jpql
+
+```sql
+select t
+from Team t join fetch t.members
+where t.name = '팀A'
+```
+
+#### sql
+
+```sql
+SELECT
+	T.*,M.*
+FROM TEAM T
+INNER JOIN MEMBER M ON T.ID = M.TEAM_ID
+WHERE T.NAME = '팀A'
+```
+
+
+
+
+
+#### 페치 조인의 특징과 한계
+
+페치 조인은 한번에 연관된 엔티티들을 함께 조회 할 수 있어 SQL 호출 횟수가 줄어 성능을 최적화 할 수 있습니다.
+
+
+
+#### 한계
+
+- 페치 조인 대상에는 별칭을 줄 수 없습니다.
+  - 따라서 SELECT, WHERE 절, 서브 쿼리에 페치 조인 대상을 사용할 수 없습니다.
+- 둘 이상의 컬렉션을 페치할 수 없습니다.
+  - JPA 구현체 따라 되기도 하는데, 컬렉션 * 컬렉션의 카테시안 곱이 만들어 지므로 조심해야 합니다. 하이버네이트를 사용하면 "javax.persistence.PersistenceExcpetion" 에러가 발생합니다.
+- 컬렉션을 페치 조인하면 페이징 API를 사용할 수 없습니다
+  - 컬렉션(일대다)이 아닌 단일 값 연관 필드(일대일, 다대일)들은 페치 조인을 사용해도 페이징 API를 사용할 수 있습니다.
+  - 하이버네이트에서 컬렉션을 페치 조인하고 페이징 API를 사용하면 경고 로그를 남기면서 메모리에서 페이징 처리를 합니다. 데이터가 많으면 성능 이슈와 메모리 초과 예외가 발생할 수 있어서 위험합니다.
+
+
+
+페치 조인은 SQL 한 번으로 연관된 여러 엔티티를 조회할 수 있어서 성능 최적화에 상당히 유용합니다. 그리고 실무에서 자주 사용하게 됩니다. 하지만 모든 것을 페치 조인으로 해결할 수는 없습니다. 페치 조인은 객체 그래프를 유지할 때 사용하면 효과적입니다. 반면에 여러 테이블을 조인해서 엔티티가 가진 모양이 아닌 전혀다른 결과를 내야 한다면 억지로 페치 조인을 사용하기보다는 여러 테이블에서 필요한 필드만을 조회해서 DTO로 반환하는 것이 더 효과적일 수 있습니다.
+
+
+
+## 경로 표현식
+
+JPQL은 다음과 같이 경로 표현식이 있습니다. 경로 표현식을 통해 묵시적 조인도 할 수 있습니다.
+
+```sql
+select m.username
+from Member m
+	join m.team t
+	join m.orders o
+where t.name = '팀A'
+```
+
+여기서 m.username, m.team, m.orders, t.name이 모두 경로 표현식을 사용한 예입니다.
+
+
+
+### 경로 표현식의 용어 정리
+
+- 상태필드 : 단순히 값을 저장하기 위한 필드(필드 or 프로퍼티)
+- 연관 필드 : 연관관계를 위한 필드, 임베디드 타입 포함
+  - 단일 값 연관 필드 : @ManyToOne, @OneToOne, 대상이 엔티티
+  - 컬렉션 값 연관 필드 :  @OneToMany, @ManyToMany, 대상이 컬렉션
+
+```java
+@Entity
+public class Member {
+
+	@Id @GeneratedValue
+	private Long id;
+  
+  @Column(name = "name")
+  private String username; //상태필드
+  private Integer age; //상태필드
+  
+  @ManyToOne(..)
+  private Team team; // 연관필드(단일 값 연관 필드)
+  
+  @OneToMany(..)
+  private List<Order> orders; // 연관필드(컬렉션 값 연관필드)
+}
+```
+
+
+
+### 경로 표현식과 특징
+
+- 상태 필드 경로 : 경로 탐색의 끝. 더는 탐색 불가능
+- 단일 값 연관 경로 : 묵시적으로 내부 조인이 일어납니다. 계속 탐색가능.
+- 컬렉션 값 연관 경로 : 묵시적으로 내부 조인이 일어납니다. 더는 탐색이 불가능. 단 FROM 절에서 조인을 통해 별칭을 얻으면 별칭으로 탐색이 가능합니다.
+
+
+
+#### 상태 필드 경로 탐색
+
+JPQL
+
+```sql
+select m.username, m.age from Member m
+```
+
+SQL
+
+```sql
+select m.name, m.age from Member m
+```
+
+
+
+#### 단일 값 연관 경로 탐색
+
+JPQL
+
+```sql
+select o.member from Order o
+```
+
+> Order 클래스안의 Member 클래스를 조회
+
+SQL
+
+```sql
+select m.* from Orders o inner join Member m on o.member_id=m.id
+```
+
+단일 값 연관 필드로 경로 탐색을 하게되면 SQL 문을 보면 내부 조인이 일어나는데 이것을 묵시적 조인이라고 합니다. 참고로 **묵시적 조인은 모두 내부조인** 입니다. 외부 조인은 명시적으로 JOIN 키워드를 사용해야 합니다.
+
+> 임베디드 타입은 단일 값 연관 경로 탐색이지만 테이블에 이미 포함되어 있으므로 조인이 발생하지 않습니다.
+
+
+
+#### 컬렉션 값 연관 경로 탐색
+
+```sql
+select t.members from Team t // 성공
+select t.members.username from Team t // 실패
+```
+
+컬렉션에서 경로 탐색을 하고 싶으면 다음과 같이 조인을 사용해서 새로운 별칭을 흭득해야 합니다.
+
+```sql
+select m.username from Team t join t.members m
+```
+
+
+
+> 참고로 컬렉션은 컬렉션의 크기를 구할 수 있는 size라는 특별한 기능이 있습니다.(JPQL에서만 가능)
+>
+> ```sql
+> select t.members.size from Team t
+> ```
+
+#### 주의 사항 
+
+- 항상 내부 조인입니다.
+- 컬렉션은 경로 탐색의 끝이므로, 경로탐색을 하고싶다면 명시적 조인으로 별칭을 얻어야 합니다.
+- 경로 탐색은 주로 SELECT,WHERE 절에서 사용하지만 묵시적 조인으로 인해 SQL의  FROM 절에 영향을 줍니다.
+
+> - 명시적 조인 : JOIN을 직접 적어줌.
+>
+>   ```sql
+>   SELECT m from Member m JOIN m.team t
+>   ```
+>
+> - 묵시적 조인 : 경로 표현식의 묵시적 조인이 일어 나는 것, 내부 조인만 가능
+>
+>   ```sql
+>   SELECT m.team FROM Member m
+>   ```
+
+#### 마무리
+
+조인이 성능상 차지하는 부분은 아주 큽니다. 묵시적 조인이 일어난다면 일어나는 상황을 한눈에 파악하기 어렵다는 단점이 있습니다. 따라서 단순하고 성능에 이슈가 없으면 크게 문제가 안 되지만 성능이 중요하면 분석하기 쉽도록 묵시적 조인보다는 명시적 조인을 사용하는게 좋습니다.
+
+
+
+## 서브쿼리
+
+JPQL도 SQL처럼 서브 쿼리를 지원하는데, `WHERE`, `HAVING` 절에만 사용 할 수 있고, `SELECT` , `FROM` 절에는 사용을 못하는 몇 가지 제약이 있습니다.
+
+나이가 평균보다 많은 회원을 찾는다.
+
+```sql
+select m from Member m where m.age > (select avg(m2.age) from Member m2)
+```
+
+한 건이라도 주문한 고객을 찾는다.
+
+```sql
+select m from Member m where (select count(o) from Order o where m = o.member) > 0
+```
+
+컬렉션 값 연관 필드의 size 기능을 사용해도 같은 결과를 얻을 수 있습니다.  (실행되는 SQL도 같음)
+
+```sql
+select m from Member m where m.orders.size > 0
+```
+
+### 서브 쿼리 함수들
+
+#### EXIST
+
+[NOT] EXIST (subquery) : 서브쿼리에 결과가 존재하면 참
+
+팀 A 소속인 회원
+
+```sql
+select m from Member m where exists(select t from m.team t where t.name = '팀A')
+```
+
+#### ALL , ANY , SOME
+
+{ALL | ANY | SOME} (subquery) :  ALL(모든조건) ANY 또는 는  SOME은 둘다 같은 의미인데, 하나라도 만족하면 참.
+
+전체 상품 각각의 재고보다 주문량이 많은 주문들
+
+```sql
+select o from Order o where o.orderAmount > ALL (select p.stockAmount from Product p)
+```
+
+어떤 팀이든 팀에 소속된 회원
+
+```sql
+select m from Member m where m.team = ANY (select t from Team t)
+```
+
+### IN
+
+[NOT] IN (subquery) : 서브쿼리의 결과 중 하나라도 같은 것이 있으면 참. IN은 서브쿼리가 아닌 곳에서도 사용합니다.
+
+20세 이상을 보유한 팀
+
+```sql
+select t from Team t where t IN (select t2 FROM Team t2 JOIN t2.members m2 where m2.age >= 202)
+```
+
+
+
+### 타입 표현
+
+where 절 이나 기타 등등에 들어가는 타입 표현 하는 방법 입니다.
+
+- 문자 : 'Hello' , 'She''s' ( 작은 따음표를 표현하고 싶으면 작은 따음표 연속 두개 사용(' '))
+- 숫자 : 10L(Long 타입) , 10D(Dobule 타입), 10F(Float 타입)
+- 날짜 : DATE({d '2019-12-20'}), TIME({t '10-11-11'}), DATETIME({ts '2019-12-20 10-11-11.123'})
+
+m.createData = {d '2019-12-20'}
+
+- 불린  : TRUE , FALSE
+- Enum = 패키지명을 포함한 전체 이름 (com.donghyeon.www.Member) 
+- 엔티티 타입 : 주로 상속과 관련해서 사용(TYPE(m) = Member)
+
+
+
+### 연산자 우선 순위
+
+1. 경로 탐색 연산 (.)
+2. 수학 연산 : +,-,*,/
+3. 비교 연산 : = , > , >= . < BETWEEN , LIKE, IN, EXISTS
+4. 논리 연산 : NOT , AND, OR
+
+
+
+### 논리 연산과 비교식
+
+### 논리 연산 
+
+- AND : 둘다 만족하면 참
+- OR : 둘 중 하나만 만족해도 참
+- NOT : 조건식의 결과 반대
+
+### 비교식 
+
+= | > | >= | < | <= | <>
+
+
+
+### Between, IN, Like, NULL 비교
+
+- Between 식
+
+   X [NOT] BETWEEN A AND B : X는 A ~ B 사이의 값이면 참(A ,B 값 포함)
+
+  나이가 10~20 인 회원들 찾기
+
+  ```sql
+  select m from Member m where m.age between 10 and 20 
+  ```
+
+- IN 
+
+  X [NOT] IN : X와 같은 값이 하나라도 있으면 참
+
+  이름이 회원1이나 회원2인 회원을 찾기
+
+  ```sql
+  select m from Member m where m.username in ('회원1','회원2')
+  ```
+
+- Like
+
+  [NOT] LIKE 패턴값 [ESCAPE 이스케이프 문자] : 문자 표현식과 패턴값을 비교합니다.
+
+  - %(퍼센트) 아무 값들이 입력되어도 됨.(값이 없어도 됨)
+  - _(언더라인) 한글자는 아무 값이 입력되도 되지만, 값이 필수
+
+  ```sql
+  //중간에 원이라는 단어가 들어간 회원 (좋은회원, 회원 , 원)
+  select m from Member m where m.username like '%원%'
+  ```
+
+- NULL 비교
+
+  {단일값 경로 | 입력 파라미터 } IS [NOT] NULL : NULL인지 비교. `=` 으로 비교하면 안되고 꼭  `IS NULL` 사용해야함!
+
+  ```sql
+  where m.username is null 
+  ```
+
+  
+
+  
+
+### 컬렉션 식
+
+  컬렉션 식은 컬렉션에만 사용하는 특별할 기능입니다. 
+
+  **컬렉션은 `컬렉션 식`만 사용가능합니다.**
+
+- 빈 컬렉션 비교 
+
+    { 컬렉션 값 연관 경로 } IS [NOT] EMPTY : 컬렉션에 값이 비어있으면 참.
+
+    ```sql 
+    //JPQL : 주문이 하나라도 있는 회원 조회
+    select m from Member m where m.orders is not empty
+    
+    //실행된 SQL
+    select m.* from Member m 
+    where 
+    	exists (
+      	select o.id
+        from Orders o
+        where m.id = o.member_id 
+      )
+    ```
+
+    컬렉션은 컬렉션 식만 가능합니다. 다음의  is null 처럼 컬렉션 식이 아닌 것은 사용할 수 없습니다.
+
+  ```sql
+  select m from Member m where m.orders is null // 오류
+  ```
+
+- 컬렉션의 멤버 식
+
+    {엔티티나 값} [NOT] MEMBER [OF] { 컬렉션 값 연관 경로 } : 엔티티나 값이 컬렉션에 포함되어 있으면 참
+
+    ```sql
+  select t from Team t where :memberParam of t.members
+  ```
+
+### 스칼라식 
+스칼라는 숫자, 문자, 날짜, case, 엔티티 타입 같은 가장 기본적인 타입들을 말합니다.
+수학 식
+- +,- : 단항 연산자
+- *,/,+,- : 사칙 연산 
+
+문자 함수 (파라미터 생략)
+- CANCAT(문자1, 문자2, ...) : 문자를 합합니다. CANCAT(‘A’,’B’) = AB
+- SUBSTRING 
+- TRIM
+- LOWER
+- UPPER
+- LENGHTH
+- LOCATE
+
+수학 함수
+- ABS
+- SQRT
+- MOD
+- SIZE
+- INDEX
+
+날짜함수
+- CURRENT_DATE
+- CURRENT_TIME
+- CURRENT_TIMESTAMP
+예시
+```sql
+select e from Event e where e.endDate < CURRENT_DATE
+```
+
+하이버네이트는 날짜 타입에서 년,월,일,시간,분,초 값을 구하는 기능을 지원합니다.
+- YEAR
+- MONTH
+- DAY
+- HOUR
+- MINUTE
+- SECOND
+```sql
+select year(CURRENT_TIMESTAMP), month(CURRENT_TIMESTAMP) from Member
+```
+
+데이터베이스들은 각자의 방식으로 더 많은 날짜 함수를 지원합니다. 그리고 각각의 날짜 함수는 하이버네이트가 제공하는 데이터베이스 방언에 등록되어 있습니다. 예를 들어 오라클 방언을 사용하면 to_date, to_char 함수를 사용할 수 있는데, 물론 다른 데이터베이스를 사용하면 동작하지 않습니다. 이런 부분들을 주의해서, 특정 데이터베이스 만의 함수를 사용한다면 문서화를 해놓는게 좋습니다.
+
+### CASE식 
+트특정 조건에 따라 분기할 때 CASE식을 사용하는데, 4가지 종류가 있습니다.
+- 기본 CASE
+- 심플 CASE
+- COALESCE
+- NULLIF
+기본 CASE
+문법
+```sql
+CASE 
+	{WHEN <조건식> THEN <스칼라식<} +
+	ELSE <스칼라식>
+END
+```
+예
+```sql
+select
+	case when m.age <= 10 then ‘학생요금’
+			when m.age >= 60 then ‘경로요금’
+			else ‘일반 요금’
+	end
+from Member m
+```
+심플 CASE
+심플 CASE는 조건식을 사용할 수 없지만, 문법이 단순하며 자바의 switch case 문과 비슷합니다. 
+문법
+``` sql
+CASE <조건대상>
+	{WHEN <스칼라식1> THEN <스칼라식2>} + 
+		ELSE <스칼라식>
+END
+```
+예
+```sql
+select
+	case t.name
+			when ‘팀A’ then ‘인센티브110%’
+			when ‘팀B’ then ‘인센티브120%’
+			else ‘인센티브105%’
+	end
+from Team t 
+```
+COALESCE
+COALESCE(<스칼라식> {,<스칼라식>}+) : 스칼라식을 차례대로 조회해서 null이 아니면 반환합니다.
+예 : m.username이 null이면 ‘이름 없는 회원’을 반환하기
+```sql
+select coalesce(m.username,’이름 없는 회원’) from Member m
+```
+NULLIF
+NULLIF(<스칼라식>, <스칼라식>) : 두 값이 같으면 null을 반환하고 다르면 첫 번째 값을 반환합니다. 집합 함수는 null을 포함하지 않으므로 보통 집합 함수와 함께 사용합니다. 
+예 : 사용자 이름이 ‘관리자’면 null을 반환하고 나머지는 본인의 이름을 반환하기
+```sql
+select NULLIF(m.username,’관리자’) from Member m
+```
+
+396p ~406p다형성 쿼리부터 다시하면됨.
+
+
+
+406p
+
+## Criteria
+
+Criteria 쿼리는  JPQL을 자바 코드로 작성하게 해주는 빌더클래스  API 입니다.
+
+Criteria를 사용하면 문자가 아닌 코드로 JPQL을 작성하므로 문법 오류를 컴파일 단계에서 잡을 수 있고 문자기반의  JPQL보다 동적 쿼리를 안전하게 생성할 수 있는 장점이 있습니다.
+
+하지만 실제로 Criteria를 사용해서 개발을 하면 코드가 복잡하고 장황해서 직관적으로 이해하기 힘들다는 단점도 있습니다.
+
+**실제로 개발했던 소스**
+
+```java
+public class MenuItemSpecification {
+
+    public static Specification<MenuItem> hasSectionId(Long menuSectionId) {
+
+        return (menuItemRoot, query, criteriaBuilder) -> {
+            query.distinct(true);
+            Subquery<MenuSection> menuSectionSubquery = query.subquery(MenuSection.class);
+            Root<MenuSection> menuSectionRoot = menuSectionSubquery.from(MenuSection.class);
+            Expression<List<MenuItem>> sectionMenuItems = menuSectionRoot.get("menuItems");
+            menuSectionSubquery.select(menuSectionRoot);
+            menuSectionSubquery.where(criteriaBuilder.equal(menuSectionRoot.get("id"), menuSectionId), criteriaBuilder.isMember(menuItemRoot, sectionMenuItems));
+
+            return criteriaBuilder.exists(menuSectionSubquery);
+        };
+    }
+}
+```
+
+JPQL : select m from Member m
+
+```java
+CriteriaBuilder cb = em.getCriteriaBuilder(); // 쿼리 빌더
+
+//Criteria 생성, 반환 타입 지정
+CriteriaQuery<Member> cq = cb.createQuery(Member.class);
+
+Root<Member> m = cq.from(Member.class); // FROM 절
+cq.select(m); // SELECT 절
+
+TypedQuery<Member> query = em.createQuery(cq);
+List<Member> members = query.getResultList();
+```
+
+
+
+검색 조건  : select m from Member m where m.username ='회원1' order by m.age desc
+
+```java
+CriteriaBuilder cb = em.getCriteriaBuilder();
+CriteriaQuery<Member> cq = cb.createQuery(Member.class);
+Root<Member> m = cq.from(Member.class);
+//검색 조건 정의
+
+```
+
