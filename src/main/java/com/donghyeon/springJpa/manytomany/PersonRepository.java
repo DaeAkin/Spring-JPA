@@ -1,5 +1,6 @@
 package com.donghyeon.springJpa.manytomany;
 
+import com.donghyeon.springJpa.global.domain.Person;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

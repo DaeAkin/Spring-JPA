@@ -1,7 +1,6 @@
 package com.donghyeon.springJpa.jpql.querydsl;
 
 import com.donghyeon.springJpa.TestConfiguration;
-import com.donghyeon.springJpa.manytomany.Person;
 import com.querydsl.jpa.impl.JPAQuery;
 import org.junit.After;
 import org.junit.Before;
@@ -14,10 +13,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)

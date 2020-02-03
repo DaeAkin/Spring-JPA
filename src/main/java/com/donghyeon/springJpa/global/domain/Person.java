@@ -1,6 +1,7 @@
-package com.donghyeon.springJpa.manytomany;
+package com.donghyeon.springJpa.global.domain;
 
 import com.donghyeon.springJpa.global.domain.Team;
+import com.donghyeon.springJpa.manytomany.Ordered;
 import com.donghyeon.springJpa.onetoone.Locker;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,8 @@ public class Person {
 
     private String username;
 
+    private int age;
+
     /**
      * @JoinTable.name : 연결 테이블을 지정한다. 여기서는 MEMBER_PRODUCT 테이블을 선택
      * @JoinTable.joinColumns : 현재 방향인 회원과 매핑할 조인 컬럼 정보를 지정한다. MEMBER_ID로 지정.
@@ -45,7 +48,7 @@ public class Person {
     @OneToMany(mappedBy = "person")
     private List<Ordered> orderedList;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     Team team;
 
@@ -65,7 +68,12 @@ public class Person {
         this.team = team;
     }
 
-//    @Override
+    public Person(String username,int age, Team team) {
+        this.username = username;
+        this.age = age;
+        this.team = team;
+    }
+    //    @Override
 //    public String toString() {
 //        StringBuilder stringBuilder = new StringBuilder();
 //        stringBuilder.append("Member{" +

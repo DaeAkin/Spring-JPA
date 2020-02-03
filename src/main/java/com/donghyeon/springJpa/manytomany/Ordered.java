@@ -1,5 +1,6 @@
 package com.donghyeon.springJpa.manytomany;
 
+import com.donghyeon.springJpa.global.domain.Person;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

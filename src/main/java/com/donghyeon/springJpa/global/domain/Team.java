@@ -1,6 +1,5 @@
 package com.donghyeon.springJpa.global.domain;
 
-import com.donghyeon.springJpa.manytomany.Person;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,7 +22,7 @@ public class Team {
 
     private String name;
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team",fetch = FetchType.LAZY)
     List<Person> personList = new ArrayList<>();
 
     public Team(String name) {

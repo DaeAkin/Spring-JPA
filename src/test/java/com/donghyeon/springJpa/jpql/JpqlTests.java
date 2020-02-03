@@ -2,7 +2,7 @@ package com.donghyeon.springJpa.jpql;
 
 import com.donghyeon.springJpa.TestConfiguration;
 import com.donghyeon.springJpa.global.domain.Team;
-import com.donghyeon.springJpa.manytomany.Person;
+import com.donghyeon.springJpa.global.domain.Person;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -16,7 +16,6 @@ import javax.persistence.*;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)
@@ -33,11 +32,17 @@ public class JpqlTests {
     public void setUp() {
         em = emf.createEntityManager(); // Retrieve an application managed entity manager
         em.getTransaction().begin();
+
+        em.createQuery("delete from Person").executeUpdate();
+        em.createQuery("delete from Team ").executeUpdate();
     }
 
     @After
     public void finish() {
         em.getTransaction().commit();
+        Query delete = em.createQuery("delete from Person");
+
+        em.createQuery("delete from Team ");
     }
 
     @Test
@@ -50,6 +55,8 @@ public class JpqlTests {
         int i = query.getResultList().indexOf(person);
 
         assertThat(person).isEqualTo(query.getResultList().get(i));
+
+
     }
 
     @Test
@@ -169,16 +176,26 @@ public class JpqlTests {
          *  where
          *      person0_.username=team1_.name
          */
+        //회원 이름이 팀 이름과 똑같은 사람 수를 구하는 예
         Query  query = em.createQuery("select count(p) from Person p, Team t where p.username = t.name");
         List resultList = query.getResultList();
         log.info("size : {} ", resultList.size());
-
     }
 
+    @Test
+    public void 페치_조인_테스트() {
+        Team team = new Team("토트넘");
+        em.persist(team);
 
+        Person person1 = new Person("donghyeon",team);
+        em.persist(person1);
+        //지연로딩으로 되어있을 경우 해당 필드를 사용할 때 가져오지만,
+        //fetch join을 사용하면 즉시로딩으로 변경됨.
+        String jpql = "select p from Person p join fetch p.team";
 
+        TypedQuery<Person> query = em.createQuery(jpql,Person.class);
+        Person result = query.getSingleResult();
 
-
-
+    }
 
 }
