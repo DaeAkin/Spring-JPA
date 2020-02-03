@@ -283,7 +283,8 @@ SELECT t,m FROM Team t LEFT JOIN t.members m
 ### 세타조인(WHERE절, 내부조인)
 WHERE 절을 사용해서 세타 조인을 할 수 있습니다. **세타 조인은 내부 조인만 지원 합니다.** 세타조인을 이용하면 전혀 관계 없는 엔티티도 조인을 할 수 있습니다.
 
-회원 이름이 팀 이름과 똑같은 사람 수를 구하는 예
+**회원 이름이 팀 이름과 똑같은 사람 수를 구하는 예**
+
 ```SQL
 //JPQL
 select count(m) from Member m, Team t where m.username = t.name
@@ -299,7 +300,7 @@ WHERE
 ### JOIN ON(JPA2.1부터 지원)
 ON 절을 사용하면 조인 대상을 필터링 하고 조인할 수 있습니다. 참고로 내부 조인의 ON 절은 WHERE 절을 사용할 때와 결과가 같으므로 보통 ON 절은 외부 조인에서만 사용합니다.
 
-모든 회원을 조회하는데, 연관된 팀도 조회하기.
+**모든 회원을 조회하는데, 연관된 팀도 조회하기**
 ```JPQL
 select m,t from Member m
 left join m.team t on t.name =‘A’

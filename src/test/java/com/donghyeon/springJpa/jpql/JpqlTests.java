@@ -141,10 +141,38 @@ public class JpqlTests {
         log.info("---- resultSet start ----");
         for(Object o : resultList) {
             Object[] result = (Object[]) o;
-            log.info("team : {}", result[0]);
-            log.info("person : {} " , result[1]);
+            log.info("team : {}", result[0]); // team 객체로 가져옴
+            log.info("person : {} " , result[1]); // person 객체로 가져옴
         }
         log.info("---- resultSet end ----");
+    }
+
+    @Test
+    public void jpql_세타조인_테스트() {
+        //세타조인은 내부조인만 지원
+
+        Team team = new Team("토트넘");
+        em.persist(team);
+
+        Person person1 = new Person("토트넘",team);
+        em.persist(person1);
+
+        Person person2 = new Person("donghyeon",team);
+        em.persist(person2);
+        /**
+         *  select
+         *      count(person0_.person_id) as col_0_0_
+         *  from
+         *      person person0_
+         *  cross
+         *      join team team1_
+         *  where
+         *      person0_.username=team1_.name
+         */
+        Query  query = em.createQuery("select count(p) from Person p, Team t where p.username = t.name");
+        List resultList = query.getResultList();
+        log.info("size : {} ", resultList.size());
+
     }
 
 
