@@ -44,12 +44,12 @@ public class QueryDSLTests {
     public void 간단한_QueryDSL_테스트() {
         //준비
         JPAQuery query = new JPAQuery(em);
-        QPerson member = QMember.member;
-
-        //쿼리, 결과조회
-        List<Person> members =
-                query.from(member)
-                        .where(member.username.eq(“kim”))
-                        .list(member);
+//        QPerson member = QMember.member;
+//
+//        //쿼리, 결과조회
+//        List<Person> members =
+//                query.from(member)
+//                        .where(member.username.eq(“kim”))
+//                        .list(member);
     }
 }

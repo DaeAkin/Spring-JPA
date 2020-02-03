@@ -1,9 +1,11 @@
 package com.donghyeon.springJpa.manytomany;
 
+import com.donghyeon.springJpa.global.domain.Team;
 import com.donghyeon.springJpa.onetoone.Locker;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class Person {
 
     @Id @Column(name = "PERSON_ID")
@@ -42,9 +45,24 @@ public class Person {
     @OneToMany(mappedBy = "person")
     private List<Ordered> orderedList;
 
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    Team team;
+
+    public void setTeam(Team team) {
+        team.getPersonList().add(this);
+        this.team = team;
+    }
+
+
+
 
     public Person(String username) {
         this.username = username;
+    }
+    public Person(String username,Team team) {
+        this.username = username;
+        this.team = team;
     }
 
 //    @Override

@@ -30,3 +30,11 @@ out/
 
 ### VS Code ###
 .vscode/
+src/main/generated/com/donghyeon/springJpa/global/domain/QAddress.java
+src/main/generated/com/donghyeon/springJpa/global/domain/QHuman.java
+src/main/generated/com/donghyeon/springJpa/global/domain/QTeam.java
+src/main/generated/com/donghyeon/springJpa/manytomany/QOrdered.java
+src/main/generated/com/donghyeon/springJpa/manytomany/QPerson.java
+src/main/generated/com/donghyeon/springJpa/manytomany/QProduct.java
+src/main/generated/com/donghyeon/springJpa/onetoone/QLocker.java
+src/main/generated/com/donghyeon/springJpa/onetoone/QMember.java
