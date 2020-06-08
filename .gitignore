@@ -38,3 +38,8 @@ src/main/generated/com/donghyeon/springJpa/manytomany/QPerson.java
 src/main/generated/com/donghyeon/springJpa/manytomany/QProduct.java
 src/main/generated/com/donghyeon/springJpa/onetoone/QLocker.java
 src/main/generated/com/donghyeon/springJpa/onetoone/QMember.java
+src/main/generated/com/donghyeon/springJpa/advancedmapping/QAlbum.java
+src/main/generated/com/donghyeon/springJpa/advancedmapping/QComputer.java
+src/main/generated/com/donghyeon/springJpa/advancedmapping/QFood.java
+src/main/generated/com/donghyeon/springJpa/advancedmapping/QItem.java
+src/main/generated/com/donghyeon/springJpa/global/domain/QPerson.java

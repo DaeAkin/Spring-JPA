@@ -54,10 +54,6 @@ JPA는 도메인 모델들을 자바 클래스처럼 다룰 수 있게 만들어
 
 
 
-
-
-
-
 ## ☛ 목차
 
 1. [JPA 클래스와 기본키 맵핑](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/JPA%20%ED%81%B4%EB%9E%98%EC%8A%A4%EC%99%80%20%EA%B8%B0%EB%B3%B8%ED%82%A4%20%EB%A7%B5%ED%95%91.md)
@@ -68,12 +64,13 @@ JPA는 도메인 모델들을 자바 클래스처럼 다룰 수 있게 만들어
    3. ManyToOne
    4. ManyToMany
 4. [@OnetoMany Mapping 주의점](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/%40OnetoMany%20Mapping%20%EC%A3%BC%EC%9D%98%EC%A0%90.md)
-5. N+1 문제 해결하기
-6. JPQL
+5. 고급 맵핑
+6. N+1 문제 해결하기
+7. JPQL
    1. QueryDSL
    2. Criteria
-7. Spring DATA JPA
-8. LOCK
+8. Spring DATA JPA
+9. LOCK
 
 
 
