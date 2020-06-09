@@ -145,8 +145,6 @@ Hibernate: insert into food (calory, item_id) values (?, ?)
 
 단일 테이블은 말 그대로 테이블을 하나만 사용합니다. 그리고 구분 컬럼으로 자식 데이터가 저장되었는지 구분 합니다. 조회 할 때 조인을 사용하지 않으므로 일반적으로 가장 빠릅니다.
 
-
-
 ```java
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -205,3 +203,29 @@ Item Entity의 @Inheritance의 strategy를 **InheritanceType.SINGLE_TABLE** 로�
 
 변경 후 똑같이 3개의 데이터를 넣게 되면, Item 테이블은 다음과 같은 상태가 됩니다.
 
+> 단일 테이블 전략을 사용해서 데이터 3개를 넣은 경우
+
+![](./img/singleTableStragey.png)
+
+#### 단일 테이블의 장점
+
+- 조인이 필요 없으므로 조회 성능이 빠릅니다.
+- 조회 쿼리가 단순합니다.
+
+```sql
+select 
+	album0_.item_id as item_id2_1_0_,
+  album0_.name as name3_1_0_,
+  album0_.price as price4_1_0_,
+  album0_.artist as artist5_1_0_ 
+from item album0_ 
+	where 
+album0_.item_id=? and album0_.dtype='A'
+```
+
+#### 단일 테이블의 단점
+
+- 자식 엔티티가 맵핑한 컬럼은 모두 null이 허용되야 합니다.
+- 단일 테이블로 모든 것을 저장하므로 테이블이 커질 수 있어, 상황에 따라서는 조회 성능이 오히려 느려질 수 있습니다.
+
+### 1.3. 구현 클래스마다 테이블 전략

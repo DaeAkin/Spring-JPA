@@ -23,6 +23,7 @@ public abstract class Item {
 
 @Entity
 @DiscriminatorValue("A")
+@NoArgsConstructor
 class Album extends Item {
 
     private String artist;
