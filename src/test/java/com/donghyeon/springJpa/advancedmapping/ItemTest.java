@@ -28,10 +28,10 @@ public class ItemTest {
         em = emf.createEntityManager(); // Retrieve an application managed entity manager
         em.getTransaction().begin();
     }
-    @After
-    public void finish() {
-        em.getTransaction().commit();
-    }
+//    @After
+//    public void finish() {
+//        em.getTransaction().commit();
+//    }
     @Test
     public void test() {
         Album album = new Album("신나는 노래",500,"동현");
@@ -42,12 +42,12 @@ public class ItemTest {
         em.persist(computer);
         em.persist(food);
 
-//        em.getTransaction().commit();
+        em.getTransaction().commit();
 
-//        em.detach(album);
-//        System.out.println("---- select ----");
-//            Album album1 = em.find(Album.class, 1L);
-//        System.out.println(album1.name);
+        em.detach(album);
+        System.out.println("---- select ----");
+            Album album1 = em.find(Album.class, 1L);
+        System.out.println(album1.name);
 
     }
 

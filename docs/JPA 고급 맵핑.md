@@ -1,3 +1,5 @@
+
+
 이번 시간에는 JPA 맵핑 방법을 좀 더 깊숙하게 들어가 보겠습니다.
 
 ## 1. 상속 관계 맵핑
@@ -229,3 +231,59 @@ album0_.item_id=? and album0_.dtype='A'
 - 단일 테이블로 모든 것을 저장하므로 테이블이 커질 수 있어, 상황에 따라서는 조회 성능이 오히려 느려질 수 있습니다.
 
 ### 1.3. 구현 클래스마다 테이블 전략
+
+이 전략은 Item의 컬럼들을 자식 테이블마다 컬럼을 추가하는 방법 입니다.
+
+```java
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class Item {
+
+    @Id @GeneratedValue
+    @Column(name = "ITEM_ID")
+    private Long id;
+
+    protected String name;
+    protected int price;
+}
+
+
+@Entity
+@NoArgsConstructor
+class Album extends Item { ... }
+
+@Entity
+class Computer extends Item { ... }
+@Entity
+class Food extends Item { ... }
+```
+
+![](./img/TABLE_PER_CLASS_Result.png)
+
+### 장점
+
+- 서브 타입을 구분해서 처리할 때 효과적입니다.
+- not null 제약 조건을 사용할 수 있습니다.
+
+### 단점 
+
+- 여러 자식 테이블을 함께 조회할 때 성능이 느립니다.(SQL에 UNION을 사용해야 함)
+- 자식 테이블을 통합해서 쿼리하기 어렵습니다.
+
+#### **이 전략은 추천하지 않는 전략 입니다.**
+
+
+
+## 2.@MappedSuperclass
+
+지금까지는 부모 클래스와 자식 클래스를 모두 테이블에 매핑했습니다. 부모 클래스는 테이블과 매핑하지 않고, 부모 클래스를 상속 받는 자식 클래스에게 매핑 정보만 제공하고 싶으면 **<u>@MappedSuperclass</u>**를 사용하면 됩니다.
+
+회원가입시, 회원가입 날짜를 나타내는 필드인 createdTime이나, 게시글을 작성할 때 작성일을 나타내는 필드인 createdTime 등 공통 속성을 부모에게 물려받아 사용할 수 있습니다.
+
+```java
+@MappedSuperclass
+public class BaseAuditingEntity {
+	private LocalDateTime createdTime;
+}
+```
+

@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "DTYPE")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class Item {
 
     @Id @GeneratedValue
@@ -22,7 +21,6 @@ public abstract class Item {
 
 
 @Entity
-@DiscriminatorValue("A")
 @NoArgsConstructor
 class Album extends Item {
 
@@ -36,7 +34,6 @@ class Album extends Item {
 }
 
 @Entity
-@DiscriminatorValue("C")
 class Computer extends Item {
 
     private String maker;
@@ -48,7 +45,6 @@ class Computer extends Item {
     }
 }
 @Entity
-@DiscriminatorValue("F")
 class Food extends Item {
 
     private int calory;
