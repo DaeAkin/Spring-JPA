@@ -1,59 +1,29 @@
 package com.donghyeon.springJpa.advancedmapping;
 
+import com.donghyeon.springJpa.BaseAuditingEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class Item {
-
+@AttributeOverride(name = "createdTime" ,column = @Column(name="makeTime"))
+public class Item extends BaseAuditingEntity {
+    public Item(String name, int price) {
+        this.name = name;
+        this.price = price;
+        this.createdTime = LocalDateTime.now();
+    }
     @Id @GeneratedValue
     @Column(name = "ITEM_ID")
     private Long id;
 
-    protected String name;
-    protected int price;
+    private String name;
+    private int price;
 }
 
-
-@Entity
-@NoArgsConstructor
-class Album extends Item {
-
-    private String artist;
-
-    public Album(String name, int price, String artist) {
-        this.name = name;
-        this.price = price;
-        this.artist = artist;
-    }
-}
-
-@Entity
-class Computer extends Item {
-
-    private String maker;
-
-    public Computer(String name, int price, String maker) {
-        this.name = name;
-        this.price = price;
-        this.maker = maker;
-    }
-}
-@Entity
-class Food extends Item {
-
-    private int calory;
-
-    public Food(String name, int price, int calory) {
-        this.name = name;
-        this.price = price;
-        this.calory = calory;
-    }
-}
 
 

@@ -280,10 +280,93 @@ class Food extends Item { ... }
 
 회원가입시, 회원가입 날짜를 나타내는 필드인 createdTime이나, 게시글을 작성할 때 작성일을 나타내는 필드인 createdTime 등 공통 속성을 부모에게 물려받아 사용할 수 있습니다.
 
+### 2.1. @MappedSuperclass를 정의한 모습
+
 ```java
 @MappedSuperclass
 public class BaseAuditingEntity {
-	private LocalDateTime createdTime;
+    protected LocalDateTime createdTime;
 }
 ```
 
+### 2.2. Item 클래스가 상속받음
+
+```java
+@Entity
+public class Item extends BaseAuditingEntity {
+
+    @Id @GeneratedValue
+    @Column(name = "ITEM_ID")
+    private Long id;
+
+    private String name;
+    private int price;
+}
+```
+
+다음과 같이 Entity에 상속을 통해서 사용합니다.
+
+#### 2.3.결과 
+
+![](./img/MappedSuperClass.png)
+
+
+
+### 2.4.부모 클래스의 필드를 재정의
+
+그러나 부모로부터 물려받은 매핑 정보를 재정의하고 싶으면 @AttributeOverrides나 @AuttributeOverride를 사용하고, 연관관계를 재정의하려면 @AssociationOverrides나 @AssociationOverride를 사용합니다.
+
+#### 2.4.1.한개의 필드를 수정할 때
+
+```java
+@Entity
+@AttributeOverride(name = "createdTime" ,column = @Column(name="makeTime"))
+public class Item extends BaseAuditingEntity {
+	...
+}
+```
+
+#### 2.4.2.N개의 필드를 재정의 할 때
+
+```java
+@AttributeOverrides({
+		@AttributeOverride(name = "createdTime" ,column = @Column(name="makeTime")),
+		@AttributeOverride(name = "origin" ,column = @Column(name="change"))
+})
+public class Item extends BaseAuditingEntity {
+	...
+}
+```
+
+현재 제가 사용중인 하이버네이트 버전에서는 카멜케이스를 스네이크 케이스로 자동으로 변환 해줍니다. 여기서 주의할 점은 @AttributeOverride의 name 속성에는 실제로 들어가는 DB 컬럼의 이름이 아니라, 클래스에서 선언해준 필드의 이름을 적어줘야 한다는 점 입니다.
+
+
+
+### 생성될 때 마다 created_time 자동으로 넣어주는 방법
+
+어떤 엔티티를 데이터베이스에 넣어줄 때 마다 create_time에 DB 함수인 now()를 사용해서 현재시간 기준으로 값을 넣어주는 방법을 그동안 많이 사용해보셨을겁니다. 
+
+JPA에서는 이런 귀찮은 작업을 @MappedSuperclass에서는 처리할 수 있습니다.
+
+```java
+@Getter
+@MappedSuperclass
+@ToString
+@EntityListeners(AuditingEntityListener.class)
+public class BaseAuditingEntity {
+    @Setter
+    @CreatedDate
+    public LocalDateTime createdTime;
+
+    @LastModifiedDate
+    private LocalDateTime modifiedTime;
+
+
+}
+```
+
+
+
+### 그래서 @MappedSuperclass 어노테이션은?
+
+테이블과는 관계가 없고 단순히 엔티티가 공통으로 사용하는 매핑 정보를 모아주는 역할을 합니다. ORM에서 이야기하는 진정한 상속 매핑은 이전에 학습한 객체 상속을 데이터베이스의 슈퍼타입 서브타입 관계와 매핑하는 것 입니다.
