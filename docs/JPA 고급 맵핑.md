@@ -344,7 +344,7 @@ public class Item extends BaseAuditingEntity {
 
 ### 생성될 때 마다 created_time 자동으로 넣어주는 방법
 
-어떤 엔티티를 데이터베이스에 넣어줄 때 마다 create_time에 DB 함수인 now()를 사용해서 현재시간 기준으로 값을 넣어주는 방법을 그동안 많이 사용해보셨을겁니다. 
+어떤 엔티티를 데이터베이스에 넣어줄 때 마다 create_time에 DB 함수인 now()를 사용해서 **현재시간 기준으로** 값을 넣어주는 방법을 그동안 많이 사용해보셨을겁니다. 
 
 JPA에서는 이런 귀찮은 작업을 @MappedSuperclass에서는 처리할 수 있습니다.
 
@@ -365,8 +365,52 @@ public class BaseAuditingEntity {
 }
 ```
 
+- @EntityListeners : 콜백 리스너 클래스를 지정하는 어노테이션 입니다.
+  - [AuditingEntityListener](https://docs.spring.io/spring-data/jpa/docs/1.1.x/api/index.html?org/springframework/data/jpa/domain/support/AuditingEntityListener.html) : Entity를 저장하거나 업데이트를 감지하는 JPA Entity 리스너 입니다.
+- @CreateDate : Entity가 persist 될 때 자동으로 현재시간을 넣어줍니다.
+- @LastModifiedDate : Entity가 update 될 때 자동으로 현재 시간을 넣어 줍니다.
 
+> @CreateDate와 @LastModifiedDate는 spring-data 라이브러리 입니다.
 
 ### 그래서 @MappedSuperclass 어노테이션은?
 
 테이블과는 관계가 없고 단순히 엔티티가 공통으로 사용하는 매핑 정보를 모아주는 역할을 합니다. ORM에서 이야기하는 진정한 상속 매핑은 이전에 학습한 객체 상속을 데이터베이스의 슈퍼타입 서브타입 관계와 매핑하는 것 입니다.
+
+
+
+## 3. 식별 vs 비식별 관계
+
+### 식별관계 
+
+식별 관계는 부모 테이블의 기본 키를 내려받아서 자식 테이블의 기본 키 + 외래 키로 사용하는 관계 입니다.
+
+> 식별관계
+
+![](./img/eyes.png)
+
+### 비식별 관계
+
+> 비식별 관계
+
+![](./img/noeyes.png)
+
+필수적 비식별 관계 : 외래 키에 NULL 허용하지 않음, 반드시 연관관계를 맺어야함.
+
+선택적 비식별 관계 : 외래 키에 NULL 허용함. 연관관계 필수 아님.
+
+
+
+## 4. 복합키 맵핑
+
+회사에서 MyBatis로 짜여진 부분을 JPA로 변환하는 작업이 있었습니다. 큰 프로젝트 였기 때문에, 데이터베이스의 스키마가 변경되면, 어디에서 사이드이펙트가 나올지 파악하기 힘들었습니다. 그래서 기존의 스키마를 변경하지 않는 방법으로 진행했습니다.
+
+그러나 JPA는 @Id 컬럼이 필수여서 PK가 되는 컬럼이 하나가 존재해야 하는데, 기존 MyBatis로 짜여진 스키마는 PK가 없고,  테이블 데이터 자체가 PK가 되는 테이블이 존재했습니다.
+
+스키마의 전체적인 구조를 변경하면 되지 않기 때문에 방법을 찾아야 했었는데, 바로 방법이 복합키 맵핑 입니다.
+
+복합키 맵핑에는 두 가지가 있습니다. 
+
+
+
+## @Idclass
+
