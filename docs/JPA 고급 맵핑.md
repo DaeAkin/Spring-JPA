@@ -10,9 +10,7 @@ JPA는 데이터베이스를 객체로 다루기 위해서 만들어 졌습니�
 
 > 이름,가격 필드가 중복인 경우
 
-![](./img/nameDuplicated.png)
-
-
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img/nameDuplicated.png?raw=true)
 
 ### 1.1. 조인 전략
 
@@ -97,7 +95,7 @@ public void test() {
 
 #### 1.1.3.결과
 
-![](./img/joinStragey.png)
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img/joinStragey.png?raw=true)
 
 
 
@@ -207,7 +205,7 @@ Item Entity의 @Inheritance의 strategy를 **InheritanceType.SINGLE_TABLE** 로�
 
 > 단일 테이블 전략을 사용해서 데이터 3개를 넣은 경우
 
-![](./img/singleTableStragey.png)
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img/singleTableStragey.png?raw=true)
 
 #### 1.2.1.단일 테이블의 장점
 
@@ -258,7 +256,7 @@ class Computer extends Item { ... }
 class Food extends Item { ... }
 ```
 
-![](./img/TABLE_PER_CLASS_Result.png)
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img/TABLE_PER_CLASS_Result.png?raw=true)
 
 #### 1.3.1.장점
 
@@ -308,7 +306,7 @@ public class Item extends BaseAuditingEntity {
 
 #### 2.3.결과 
 
-![](./img/MappedSuperClass.png)
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img//MappedSuperClass.png?raw=true)
 
 
 
@@ -386,13 +384,13 @@ public class BaseAuditingEntity {
 
 > 식별관계
 
-![](./img/eyes.png)
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img/eyes.png?raw=true)
 
 ### 비식별 관계
 
 > 비식별 관계
 
-![](./img/noeyes.png)
+![](https://github.com/DaeAkin/Spring-Jpa/blob/master/docs/img/noeyes.png?raw=true)
 
 필수적 비식별 관계 : 외래 키에 NULL 허용하지 않음, 반드시 연관관계를 맺어야함.
 
