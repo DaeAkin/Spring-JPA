@@ -10,20 +10,12 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@AttributeOverride(name = "createdTime" ,column = @Column(name="makeTime"))
-public class Item extends BaseAuditingEntity {
-    public Item(String name, int price) {
-        this.name = name;
-        this.price = price;
-        this.createdTime = LocalDateTime.now();
-    }
-    @Id @GeneratedValue
-    @Column(name = "ITEM_ID")
-    private Long id;
+public class Item{
+    @EmbeddedId
+    private ItemId id;
 
     private String name;
     private int price;
 }
-
 
 

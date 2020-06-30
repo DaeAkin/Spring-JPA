@@ -34,7 +34,7 @@ public class ItemTest {
     }
     @Test
     public void test() {
-        Item item = new Item("아이템",5000);
+        Item item = new Item();
         em.persist(item);
     }
 
