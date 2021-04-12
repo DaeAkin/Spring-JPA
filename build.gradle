@@ -1,14 +1,12 @@
 plugins {
-    id 'org.springframework.boot' version '2.0.5.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'org.springframework.boot' version '2.4.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
-	id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
 }
 
-
-group = 'com.donghyeon'
+group = 'com.donghyeon.springJpa'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+
 
 configurations {
     compileOnly {
@@ -20,51 +18,50 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    mapstructVersion = "1.4.1.Final"
+    lombokVersion = "1.18.16"
+    lombokMapstructBindingVersion = "0.2.0"
+}
+
+
+
+apply plugin: "io.spring.dependency-management"
 dependencies {
-
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compileOnly "org.projectlombok:lombok:1.18.6"
-    annotationProcessor "org.projectlombok:lombok:1.18.6"
-    testAnnotationProcessor "org.projectlombok:lombok:1.18.6"
-    testCompile "org.projectlombok:lombok:1.18.6"
-    testImplementation "org.projectlombok:lombok:1.18.6"
-    runtimeOnly 'mysql:mysql-connector-java'
+
     annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    implementation 'junit:junit:4.12'
+    runtimeOnly 'com.h2database:h2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    // JDK 8+ 이상에서 JPA를 사용하려면 아래의 패키지가 필요
-    implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
-    implementation "org.glassfish.jaxb:jaxb-runtime:2.3.2"
-    compile group: 'org.javassist', name: 'javassist', version: '3.25.0-GA'
-
-    //QueryDSL
-	compile("com.querydsl:querydsl-jpa") // querydsl
-	compile("com.querydsl:querydsl-apt") // querydsl
-    compile group: 'com.querydsl', name: 'querydsl-jpa', version: '4.1.4'
+    runtimeOnly 'com.h2database:h2'
 
 
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-core'
+    implementation 'com.querydsl:querydsl-jpa'
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.5.8'
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa" // querydsl JPAAnnotationProcessor 사용 지정
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 }
 
-def querydslSrcDir = 'src/main/generated'
-
-querydsl {
-    library = "com.querydsl:querydsl-apt"
-    jpa = true
-    querydslSourcesDir = querydslSrcDir
+test {
+    useJUnitPlatform()
 }
 
-compileQuerydsl{
-    options.annotationProcessorPath = configurations.querydsl
-}
-
-configurations {
-    querydsl.extendsFrom compileClasspath
-}
-
+def generated="generated/querydsl"
 sourceSets {
-    main {
-        java {
-            srcDirs = ['src/main/java', querydslSrcDir]
-        }
-    }
+    main.java.srcDirs += [ generated ]
+}
+
+tasks.withType(JavaCompile) {
+    options.annotationProcessorGeneratedSourcesDirectory = file(generated)
+}
+
+clean.doLast {
+    file(generated).deleteDir()
 }
